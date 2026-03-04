@@ -1,1 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE CHAOS BUTTON</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Black+Han+Sans&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --neon: #ff003c;
+    --accent: #00ffcc;
+    --warn: #ffdd00;
+    --white: #f0f0f0;
+  }
 
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Boogaloo', cursive;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: crosshair;
+    transition: background 0.3s, filter 0.3s, transform 0.5s;
+    position: relative;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2rem, 6vw, 4.5rem);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-shadow:
+      0 0 10px var(--neon),
+      0 0 30px var(--neon),
+      0 0 60px rgba(255,0,60,0.3);
+    margin-bottom: 0.5em;
+    animation: flicker 4s infinite;
+    position: relative;
+    z-index: 10;
+    user-select: none;
+  }
+
+  @keyframes flicker {
+    0%,94%,96%,100% { opacity: 1; }
+    95% { opacity: 0.3; }
+  }
+
+  .subtitle {
+    font-size: clamp(0.8rem, 2vw, 1.1rem);
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 3em;
+    opacity: 0.8;
+    position: relative;
+    z-index: 10;
+    user-select: none;
+  }
+
+  #chaos-btn {
+    position: relative;
+    z-index: 10;
+    background: transparent;
+    border: 3px solid var(--neon);
+    color: var(--neon);
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    letter-spacing: 0.2em;
+    padding: 0.6em 2em;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow:
+      0 0 20px var(--neon),
+      inset 0 0 20px rgba(255,0,60,0.1);
+    transition: all 0.15s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    min-width: 280px;
+    text-align: center;
+  }
+
+  #chaos-btn:hover {
+    background: var(--neon);
+    color: #000;
+    box-shadow: 0 0 40px var(--neon), 0 0 80px rgba(255,0,60,0.5);
+    transform: scale(1.05);
+  }
+
+  #chaos-btn:active {
+    transform: scale(0.95);
+  }
+
+  .counter {
+    margin-top: 2em;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    position: relative;
+    z-index: 10;
+    user-select: none;
+  }
+
+  .counter span {
+    color: var(--warn);
+    font-family: 'Black Han Sans', sans-serif;
+  }
+
+  /* ===== EVENT LAYERS ===== */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Meme text bomb */
+  .meme-text {
+    position: fixed;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(2rem, 6vw, 5rem);
+    color: var(--warn);
+    text-shadow: 4px 4px 0 #000, -2px -2px 0 #000;
+    text-transform: uppercase;
+    z-index: 200;
+    pointer-events: none;
+    animation: meme-pop 2.5s forwards;
+    user-select: none;
+  }
+
+  @keyframes meme-pop {
+    0%   { transform: scale(0) rotate(-10deg); opacity: 1; }
+    15%  { transform: scale(1.3) rotate(3deg); opacity: 1; }
+    30%  { transform: scale(1) rotate(0); opacity: 1; }
+    80%  { transform: scale(1) rotate(0); opacity: 1; }
+    100% { transform: scale(0.8) rotate(5deg); opacity: 0; }
+  }
+
+  /* Fake error popup */
+  .error-popup {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #c0c0c0;
+    border: 3px solid #000;
+    box-shadow: 6px 6px 0 #000;
+    padding: 0;
+    z-index: 500;
+    min-width: 320px;
+    font-family: 'Tahoma', sans-serif;
+    animation: popup-in 0.15s ease-out;
+  }
+
+  @keyframes popup-in {
+    from { transform: translate(-50%, -50%) scale(0.8); }
+    to   { transform: translate(-50%, -50%) scale(1); }
+  }
+
+  .error-title-bar {
+    background: linear-gradient(90deg, #000080, #1084d0);
+    color: white;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: move;
+  }
+
+  .error-close {
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    width: 20px; height: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+
+  .error-body {
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    font-size: 0.85rem;
+  }
+
+  .error-icon { font-size: 2.5rem; }
+
+  .error-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    border-top: 2px solid #888;
+  }
+
+  .error-btn {
+    background: #c0c0c0;
+    border: 2px outset #fff;
+    padding: 4px 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: 'Tahoma', sans-serif;
+  }
+
+  .error-btn:active { border-style: inset; }
+
+  /* Emoji rain */
+  .emoji-rain {
+    position: fixed;
+    top: -60px;
+    font-size: 2.5rem;
+    z-index: 300;
+    pointer-events: none;
+    animation: fall linear forwards;
+  }
+
+  @keyframes fall {
+    to { top: 110vh; }
+  }
+
+  /* Glitch effect */
+  @keyframes glitch-body {
+    0%   { filter: none; }
+    10%  { filter: hue-rotate(90deg) saturate(3); transform: translate(-3px, 1px); }
+    20%  { filter: none; transform: none; }
+    30%  { filter: invert(1); transform: translate(3px, -1px); }
+    40%  { filter: none; transform: none; }
+    50%  { filter: hue-rotate(200deg); transform: translate(-2px, 2px); }
+    60%  { filter: none; transform: none; }
+    100% { filter: none; transform: none; }
+  }
+
+  body.glitch { animation: glitch-body 0.6s forwards; }
+
+  /* Upside down */
+  body.upsidedown { transform: rotate(180deg); }
+
+  /* Shake */
+  @keyframes shake {
+    0%,100% { transform: none; }
+    10%,30%,50%,70%,90% { transform: translate(-8px, 4px) rotate(-1deg); }
+    20%,40%,60%,80% { transform: translate(8px, -4px) rotate(1deg); }
+  }
+
+  body.shaking { animation: shake 0.5s; }
+
+  /* Big stamp */
+  .stamp {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%) rotate(-15deg) scale(0);
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(5rem, 18vw, 12rem);
+    color: transparent;
+    border: 12px solid var(--neon);
+    text-transform: uppercase;
+    padding: 0.1em 0.3em;
+    z-index: 400;
+    pointer-events: none;
+    animation: stamp-anim 2s forwards;
+    letter-spacing: 0.1em;
+    -webkit-text-stroke: 6px var(--neon);
+    filter: drop-shadow(0 0 20px var(--neon));
+    user-select: none;
+  }
+
+  @keyframes stamp-anim {
+    0%   { transform: translate(-50%,-50%) rotate(-15deg) scale(2); opacity: 0; }
+    20%  { transform: translate(-50%,-50%) rotate(-15deg) scale(1); opacity: 1; }
+    70%  { transform: translate(-50%,-50%) rotate(-15deg) scale(1); opacity: 1; }
+    100% { transform: translate(-50%,-50%) rotate(-15deg) scale(1); opacity: 0; }
+  }
+
+  /* Matrix canvas */
+  #matrix-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    display: none;
+  }
+
+  /* Button runaway */
+  #chaos-btn.runaway {
+    position: fixed !important;
+    transition: top 0.08s, left 0.08s;
+  }
+
+  /* Cursed mode */
+  body.cursed { cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='28' font-size='28'>👁️</text></svg>") 16 16, auto; }
+
+  /* Toast notifications */
+  .toast {
+    position: fixed;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(0,0,0,0.9);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 12px 28px;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    z-index: 600;
+    animation: toast-anim 3s forwards;
+    white-space: nowrap;
+  }
+
+  @keyframes toast-anim {
+    0%   { transform: translateX(-50%) translateY(100px); opacity: 0; }
+    15%  { transform: translateX(-50%) translateY(0); opacity: 1; }
+    75%  { transform: translateX(-50%) translateY(0); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(100px); opacity: 0; }
+  }
+
+  /* Background noise */
+  .bg-noise {
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+<div class="bg-noise"></div>
+<canvas id="matrix-canvas"></canvas>
+<div id="overlay"></div>
+
+<h1 class="title">THE CHAOS BUTTON</h1>
+<p class="subtitle">click at your own risk</p>
+
+<button id="chaos-btn" onclick="triggerChaos()">PRESS ME</button>
+
+<p class="counter">chaos unleashed: <span id="click-count">0</span> times</p>
+
+<script>
+let clickCount = 0;
+let isRunaway = false;
+let runawayBtn = null;
+let upsideDown = false;
+let matrixActive = false;
+let matrixInterval = null;
+let cursedMode = false;
+
+const btn = document.getElementById('chaos-btn');
+const countEl = document.getElementById('click-count');
+const overlay = document.getElementById('overlay');
+
+const memes = [
+  "YEET", "BASED", "NO CAP", "BRUH", "IT'S OVER\n9000",
+  "COPE", "SLAY", "SHEESH", "RATIO", "L + RATIO",
+  "SKILL\nISSUE", "TOUCH GRASS", "RENT FREE", "SEND IT",
+  "NPC BEHAVIOR", "VIBE CHECK", "POGGERS", "CERTIFIED\nW", "MID",
+  "GOATED", "FR FR", "NO WAY BRO", "CAUGHT IN 4K"
+];
+
+const toasts = [
+  "Your browser has gained sentience.",
+  "The button is now filing a restraining order.",
+  "Please stop. I'm begging.",
+  "Chaos levels: CRITICAL",
+  "Error 404: Chill not found",
+  "Your laptop has started crying.",
+  "The button has called its lawyer.",
+  "FBI open up.",
+  "This is fine. 🔥",
+  "Achievement unlocked: Chaos Goblin",
+  "Your WiFi router is disappointed in you.",
+  "The void stares back.",
+];
+
+const events = [
+  doGlitch, doGlitch,
+  doMemeText, doMemeText, doMemeText,
+  doErrorPopup, doErrorPopup,
+  doEmojiRain, doEmojiRain,
+  doStamp,
+  doShake, doShake,
+  doUpsideDown,
+  doMatrix,
+  doRunaway,
+  doColorExplosion,
+  doCursed,
+  doBgChange,
+];
+
+function triggerChaos() {
+  clickCount++;
+  countEl.textContent = clickCount;
+  showToast(toasts[Math.floor(Math.random() * toasts.length)]);
+
+  // Pick 1-2 random events
+  const numEvents = Math.random() < 0.3 ? 2 : 1;
+  const shuffled = [...events].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < numEvents; i++) shuffled[i]();
+}
+
+function doGlitch() {
+  document.body.classList.remove('glitch');
+  void document.body.offsetWidth;
+  document.body.classList.add('glitch');
+  setTimeout(() => document.body.classList.remove('glitch'), 700);
+}
+
+function doShake() {
+  document.body.classList.remove('shaking');
+  void document.body.offsetWidth;
+  document.body.classList.add('shaking');
+  setTimeout(() => document.body.classList.remove('shaking'), 600);
+}
+
+function doMemeText() {
+  const el = document.createElement('div');
+  el.className = 'meme-text';
+  el.textContent = memes[Math.floor(Math.random() * memes.length)];
+  el.style.left = (10 + Math.random() * 70) + 'vw';
+  el.style.top  = (10 + Math.random() * 65) + 'vh';
+  el.style.transform = `rotate(${-20 + Math.random() * 40}deg)`;
+  el.style.color = ['#ffdd00','#ff003c','#00ffcc','#ff6600','#ff00ff'][Math.floor(Math.random()*5)];
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+function doErrorPopup() {
+  const errors = [
+    { title: "Critical Error", msg: "Your brain.exe has stopped working.\nRestart your personality?", icon: "💀" },
+    { title: "Warning", msg: "Too much chaos detected.\nSystem integrity: 3%", icon: "⚠️" },
+    { title: "404 - Chill Not Found", msg: "We searched everywhere.\nYour chill does not exist.", icon: "🔍" },
+    { title: "Skill Issue Detected", msg: "Windows has detected a fatal\nskill issue. Please cope harder.", icon: "🤡" },
+    { title: "VIRUS DETECTED", msg: "Brain worms found: 47\nRecommended action: Touch grass.", icon: "🐛" },
+  ];
+  const e = errors[Math.floor(Math.random() * errors.length)];
+  const popup = document.createElement('div');
+  popup.className = 'error-popup';
+  popup.innerHTML = `
+    <div class="error-title-bar">
+      <span>${e.title}</span>
+      <button class="error-close" onclick="this.closest('.error-popup').remove()">✕</button>
+    </div>
+    <div class="error-body">
+      <div class="error-icon">${e.icon}</div>
+      <div style="line-height:1.5">${e.msg.replace('\n','<br>')}</div>
+    </div>
+    <div class="error-buttons">
+      <button class="error-btn" onclick="this.closest('.error-popup').remove()">OK</button>
+      <button class="error-btn" onclick="this.closest('.error-popup').remove()">Cancel</button>
+      <button class="error-btn" onclick="this.closest('.error-popup').remove()">Ignore</button>
+    </div>`;
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 8000);
+}
+
+function doEmojiRain() {
+  const emojis = ['💀','🐸','🤡','👁️','🔥','💩','🗿','😭','🫠','👽','🦆','🍆','🐀','🧌','🫶'];
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'emoji-rain';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = Math.random() * 95 + 'vw';
+      el.style.fontSize = (1.5 + Math.random() * 2.5) + 'rem';
+      const dur = 1.5 + Math.random() * 2;
+      el.style.animationDuration = dur + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000 + 100);
+    }, i * 80);
+  }
+}
+
+function doStamp() {
+  const words = ["BASED", "RATIO", "CRINGE", "GOATED", "L", "W", "MID", "COPE"];
+  const el = document.createElement('div');
+  el.className = 'stamp';
+  el.textContent = words[Math.floor(Math.random() * words.length)];
+  el.style.color = 'transparent';
+  const colors = ['#ff003c','#00ffcc','#ffdd00','#ff00ff'];
+  const c = colors[Math.floor(Math.random() * colors.length)];
+  el.style.borderColor = c;
+  el.style.webkitTextStroke = `6px ${c}`;
+  el.style.filter = `drop-shadow(0 0 20px ${c})`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2100);
+}
+
+function doUpsideDown() {
+  upsideDown = !upsideDown;
+  document.body.style.transition = 'transform 0.6s cubic-bezier(.68,-0.55,.27,1.55)';
+  document.body.style.transform = upsideDown ? 'rotate(180deg)' : 'none';
+  setTimeout(() => {
+    if (upsideDown) { upsideDown = false; document.body.style.transform = 'none'; }
+  }, 3000);
+}
+
+function doMatrix() {
+  const canvas = document.getElementById('matrix-canvas');
+  if (matrixActive) return;
+  matrixActive = true;
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const emojis = ['💀','🐸','🤡','👁️','💩','🗿','🫠','L','W'];
+  const cols = Math.floor(canvas.width / 24);
+  const drops = Array(cols).fill(1);
+  let frames = 0;
+  matrixInterval = setInterval(() => {
+    ctx.fillStyle = 'rgba(10,10,15,0.15)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ff003c';
+    ctx.font = '20px monospace';
+    drops.forEach((y, i) => {
+      const char = emojis[Math.floor(Math.random() * emojis.length)];
+      ctx.fillText(char, i * 24, y * 24);
+      if (y * 24 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+    frames++;
+    if (frames > 120) {
+      clearInterval(matrixInterval);
+      canvas.style.display = 'none';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      matrixActive = false;
+    }
+  }, 50);
+}
+
+function doRunaway() {
+  if (isRunaway) return;
+  isRunaway = true;
+  const rect = btn.getBoundingClientRect();
+  btn.classList.add('runaway');
+  btn.style.top  = rect.top  + 'px';
+  btn.style.left = rect.left + 'px';
+
+  const flee = (e) => {
+    const mx = e.clientX ?? window.innerWidth / 2;
+    const my = e.clientY ?? window.innerHeight / 2;
+    const br = btn.getBoundingClientRect();
+    const bx = br.left + br.width  / 2;
+    const by = br.top  + br.height / 2;
+    const dx = bx - mx, dy = by - my;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 200) {
+      const speed = 180;
+      const nx = bx + (dx / dist) * speed;
+      const ny = by + (dy / dist) * speed;
+      btn.style.left = Math.max(0, Math.min(window.innerWidth  - br.width,  nx - br.width/2))  + 'px';
+      btn.style.top  = Math.max(0, Math.min(window.innerHeight - br.height, ny - br.height/2)) + 'px';
+    }
+  };
+
+  document.addEventListener('mousemove', flee);
+  setTimeout(() => {
+    document.removeEventListener('mousemove', flee);
+    btn.classList.remove('runaway');
+    btn.style.top = btn.style.left = '';
+    isRunaway = false;
+  }, 5000);
+}
+
+function doColorExplosion() {
+  const colors = [
+    ['#ff003c', '#0a0a0f'],
+    ['#00ffcc', '#001a15'],
+    ['#ffdd00', '#1a1400'],
+    ['#ff00ff', '#1a001a'],
+    ['#0066ff', '#00081a'],
+  ];
+  const [neon, bg] = colors[Math.floor(Math.random() * colors.length)];
+  document.documentElement.style.setProperty('--neon', neon);
+  document.documentElement.style.setProperty('--bg', bg);
+  document.body.style.background = bg;
+  setTimeout(() => {
+    document.documentElement.style.setProperty('--neon', '#ff003c');
+    document.documentElement.style.setProperty('--bg', '#0a0a0f');
+    document.body.style.background = '';
+  }, 3000);
+}
+
+function doCursed() {
+  cursedMode = !cursedMode;
+  document.body.classList.toggle('cursed', cursedMode);
+  showToast(cursedMode ? "Cursed mode: ON 👁️" : "Cursed mode: OFF");
+  if (cursedMode) setTimeout(() => {
+    cursedMode = false;
+    document.body.classList.remove('cursed');
+  }, 5000);
+}
+
+function doBgChange() {
+  const patterns = [
+    'repeating-linear-gradient(45deg, #ff003c11 0px, #ff003c11 10px, transparent 10px, transparent 20px)',
+    'repeating-radial-gradient(circle at 50% 50%, #00ffcc08 0, #00ffcc08 10px, transparent 10px, transparent 30px)',
+    'repeating-linear-gradient(90deg, #ffdd0008 0px, #ffdd0008 5px, transparent 5px, transparent 25px)',
+  ];
+  document.body.style.backgroundImage = patterns[Math.floor(Math.random() * patterns.length)];
+  setTimeout(() => document.body.style.backgroundImage = '', 3000);
+}
+
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+</script>
+</body>
+</html>
